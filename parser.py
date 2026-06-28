@@ -1,0 +1,194 @@
+
+from zone import Zone, HubType
+
+from connection import Connection
+
+
+
+class Parser:
+
+    def __init__(self, filepath: str) -> None:
+
+        self.filepath: str = filepath
+
+        self.nb_drones: int = 0
+
+        self.zones: dict[str, Zone] = {}
+
+        self.connections: list[Connection] = []
+
+        self.start_zone: Optional[Zone] = None
+
+        self.end_zone: Optional[Zone] = None
+
+        self.seen_coords: set[tuple[int,int]] = set()
+
+
+
+    def _clean_line(self, line: str) -> str:
+
+        return line.split('#')[0].strip()
+
+
+    def _extract_metadata(self,line: str,line_num: int)->dict[str,str]:
+        metadata_dic: dict[str,str]={}
+
+        start_idx = line.find('[')
+        end_idx = line.find(']')
+
+        # Case 1: Both brackets are missing entirely
+        if start_idx == -1 and end_idx == -1:
+            return metadata_dic
+            
+        # Case 2: One bracket is missing, but the other exists
+        elif start_idx == -1 or end_idx == -1:
+            raise ValueError(f"Parsing error on line {line_num}: Mismatched metadata brackets.")
+        metadata_str = line[start_idx+1:end_idx]
+        
+        pairs = metadata_str.split()
+        
+        for pair in pairs:
+            key,value = pair.split("=")
+            metadata_dic[key] = value
+        
+        return metadata_dic
+    
+    def _parse_nb_drones(self, line: str, line_num: int) -> None:
+
+        parts_list = line.split(':')
+
+        try:
+
+            self.nb_drones = int(parts_list[1])
+
+        except ValueError:
+
+            raise ValueError(f"Parsing error on line {line_num}: Number of drones must be an integer.")
+
+        
+
+    def _parse_hub(self, line: str, line_num: int) -> None:
+
+        parts = line.split()
+
+        if parts[0] == "start_hub:":
+
+            hub_type = HubType.START
+
+        elif parts[0] == "end_hub:":
+
+            hub_type = HubType.END
+
+        elif parts[0] == "hub:":
+
+            hub_type = HubType.REGULAR
+
+        else:
+
+            return
+
+        name = parts[1]
+        if name in self.zones:
+            raise ValueError (f"Parsing error on line {line_num}: names duplicates")
+        try:
+
+            x = int(parts[2])
+
+            y = int(parts[3])
+
+        except ValueError:
+
+            raise ValueError(f"Parsing error on line {line_num}: Coordinates must be integers.")
+        
+        my_tuple = (x,y)
+        
+        if my_tuple in self.seen_coords:
+            raise ValueError (f"Parsing error on line {line_num} Coordinates must be unique")
+        else:
+            self.seen_coords.add(my_tuple)
+        
+        if hub_type == HubType.START:
+
+            self.start_zone = new_zone
+
+        elif hub_type == HubType.END:
+
+            self.end_zone = new_zone
+        
+    
+        metadata = self._extract_metadata(line, line_num)
+        
+    
+        color = metadata.get("color", "none")
+        
+        zone_type = metadata.get("zone", "normal")
+        if zone_type not in ("normal", "blocked", "restricted", "priority"):
+            raise ValueError(f"Parsing error on line {line_num}: invalid zone type.")
+
+    
+        raw_capacity = metadata.get("max_drones", None)
+        max_drones = None
+        
+        if raw_capacity is not None:
+            try:
+                max_drones = int(raw_capacity)
+            except ValueError:
+                raise ValueError(f"Parsing error on line {line_num}: max_drones must be an integer.")
+            
+            if max_drones <= 0:
+                raise ValueError(f"Parsing error on line {line_num}: max_drones must be a positive integer.")
+        
+        # Object Instantiation
+        new_zone = Zone(name, x, y, new_zone, zone_type, color, max_drones)
+        
+        if hub_type == HubType.START:
+            if self.start_zone is not None:
+                raise ValueError(f"Parsing error on line {line_num}: Multiple start hubs defined.")
+            self.start_zone = new_zone
+
+        elif hub_type == HubType.END:
+            if self.end_zone is not None:
+                raise ValueError(f"Parsing error on line {line_num}: Multiple end hubs defined.")
+            self.end_zone = new_zone
+        
+        self.zones[name] = new_zone
+
+        
+
+
+    def _parse_connection(self,line:str, line_num:int)->None:
+        pass
+    
+        
+    
+    def parse(self) -> None:
+
+        has_nb_drones: bool = False
+
+        with open(self.filepath, 'r') as file:
+
+            for line_num, line in enumerate(file, start=1):
+
+                cleaned_line = self._clean_line(line)
+
+                if cleaned_line == "":
+
+                    continue
+
+                if cleaned_line.startswith("nb_drones:"):
+
+                    has_nb_drones = True   
+
+                    self._parse_nb_drones(cleaned_line, line_num)
+
+                    continue
+
+                if not has_nb_drones:
+
+                    raise ValueError(f"Parsing error on line {line_num}: The first valid line must define 'nb_drones:'")
+
+                if cleaned_line.startswith(("start_hub:", "end_hub:", "hub:")):
+
+                    self._parse_hub(cleaned_line, line_num)
+
+                    continue 
