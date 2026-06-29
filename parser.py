@@ -216,3 +216,15 @@ class Parser:
             raise ValueError(f"Parsing error: Could not load map. {system_message}") from None
         if not has_nb_drones:
             raise ValueError("Parsing error: File is empty or missing 'nb_drones:'.")
+        
+        start_count  = 0
+        end_count = 0
+        for zone in self.zones.values():
+            if zone.hub_type == HubType.START:
+                start_count+=1
+            elif zone.hub_type == HubType.END:
+                end_count +=1
+
+        
+        if start_count !=1 or end_count !=1:
+            raise ValueError("Parsing error: Map must have exactly ONE Start_hub and End_hub.")
