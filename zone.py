@@ -37,6 +37,8 @@ class Zone:
                 self.max_drones = 1
 
         self.current_drones: int = 0
+    def __str__(self):
+        return f"zone {self.name} , {self.color}, {self.x, self.y}"
 
 
 if __name__ == "__main__":

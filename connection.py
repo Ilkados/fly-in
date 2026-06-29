@@ -16,6 +16,8 @@ class Connection:
         # State tracking: how many drones are currently traversing this connection
         self.current_drones: int = 0
 
+    def __str__(self):
+            return f"zone {self.name} , {self.max_link_capacity}, {self.current_drones}"
 
 if __name__ == "__main__":
     print("---Starting Manual Test---")
