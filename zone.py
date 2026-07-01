@@ -6,6 +6,7 @@ class HubType(Enum):
     START = 1
     END = 2
     REGULAR = 3
+    BOTH = 4
 
 
 class Zone:

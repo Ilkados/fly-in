@@ -49,7 +49,10 @@ class Parser:
         pairs = metadata_str.split()
         
         for pair in pairs:
-            key,value = pair.split("=")
+            try:
+                key,value = pair.split("=",1)
+            except:
+                raise ValueError(f"Parsing error on line {line_num}: Invalid metadata syntax '{pair}'")
             metadata_dic[key] = value
         
         return metadata_dic
@@ -106,9 +109,10 @@ class Parser:
             existing_type = self.seen_coords[my_tuple]
     
             if existing_type == HubType.START and hub_type == HubType.END:
-                pass
+                self.seen_coords[my_tuple] = HubType.BOTH
+            
             elif existing_type == HubType.END and hub_type == HubType.START:
-                pass
+                self.seen_coords[my_tuple] = HubType.BOTH
             else:
                 raise ValueError (f"Parsing error on line {line_num} Coordinates must be unique")
         else:
@@ -176,7 +180,7 @@ class Parser:
             if max_link_capacity <= 0:
                 raise ValueError(f"Parsing error on line {line_num}: Capacity must be > 0.")
         except ValueError:
-            raise ValueError(f"Parsing error on line {line_num}: Distance must be an integer.")
+            raise ValueError(f"Parsing error on line {line_num}: Capacity must be an integer.")
 
         zone_a = self.zones[hub_a]
         zone_b = self.zones[hub_b]
