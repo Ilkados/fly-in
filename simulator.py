@@ -22,11 +22,11 @@ class Simulator:
         
         return wishes
     
-    def resolve_and_move(self, wishes: dict[Zone, list[Drone]]) -> list[tuple[Drone, Zone, Zone]]:
+    def resolve_and_move(self, wishes: dict[Zone, list[Drone]],snapshot: dict[Zone,int]) -> list[tuple[Drone, Zone, Zone]]:
         report: list[tuple[Drone, Zone, Zone]] = []
 
         for target_zone, candidate_drones in wishes.items():
-            free_slots = target_zone.max_drones - target_zone.current_drones
+            free_slots = target_zone.max_drones - snapshot[target_zone]
             winners = candidate_drones[:free_slots]
 
             for drone in winners:
@@ -41,16 +41,23 @@ class Simulator:
                 # Append as ONE tuple (double parentheses)
                 report.append((drone, old_zone, target_zone))
 
-        return report  # <-- Aligned with outer 'for', runs AFTER all zones are processed!
+        return report 
+    
+    def take_snapshot(self)->dict[Zone,int]:
+        snapshot: dict[Zone,int] = {}
+        for zone in self.graph.zones.values():
+            snapshot[zone] = zone.current_drones
+        return snapshot
     
     def step(self) -> list[tuple[Drone, Zone, Zone]]:
         """Runs one simultaneous turn: collects intentions, resolves traffic, applies moves."""
         self.turn_count += 1
         
-        # Phase A: Decide
+        snapshot = self.take_snapshot()
+       
         wishes = self.collect_wishes()
         
-        # Phase B: Apply
-        report = self.resolve_and_move(wishes)
+        report = self.resolve_and_move(wishes,snapshot)
         
         return report
+
