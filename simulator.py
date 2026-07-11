@@ -50,7 +50,7 @@ class Simulator:
 
                 # 1. Grab the Connection object in O(1) time
                 # (Adjust this line to match how your Graph class is built!)
-                connection = self.graph.get_connection(old_zone, target_zone)
+                connection = self.graph.get_connection(current_zone, target_zone)
 
                 # 2. Get the road's capacity. If it doesn't have one, default to 1 (Safe/Strict mode)
                 max_capacity = connection.max_link_capacity

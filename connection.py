@@ -19,11 +19,3 @@ class Connection:
     def __str__(self):
             return f"connection {self.name} , {self.max_link_capacity}, {self.current_drones}"
 
-if __name__ == "__main__":
-    print("---Starting Manual Test---")
-
-    zone1 = Zone("spawn", 0, 1, HubType.START)
-    zone2 = Zone("roof1", 0, 2, HubType.REGULAR)
-    connect = Connection(zone1, zone2, 2)
-
-    print(connect.name)

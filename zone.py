@@ -38,16 +38,8 @@ class Zone:
                 self.max_drones = 1
 
         self.current_drones: int = 0
-    def __str__(self):
-        return f"zone {self.name} , {self.color}, {self.x, self.y}"
+        
+    def __repr__(self) -> str:
+        return f"{self.name}"
 
 
-if __name__ == "__main__":
-    print("---Starting Manual Test---")
-
-    zone1 = Zone("spawn", 0, 1, HubType.START)
-    zone2 = Zone("roof1", 0, 2, HubType.REGULAR)
-
-    print(zone1.max_drones)
-    print(zone2.max_drones)
-    print(type(zone1.max_drones))
