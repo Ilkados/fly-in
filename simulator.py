@@ -73,11 +73,21 @@ class Simulator:
                     
     def step(self) -> list[tuple[Drone, Zone, Zone]]:
         """Runs one simultaneous turn: collects intentions, resolves traffic, applies moves."""
-        self.turn_count += 1
         
         wishes = self.collect_wishes()
         
         report = self.resolve_and_move(wishes)
         
+        if len(report) > 0: 
+            self.turn_count += 1
         return report 
+    
+    def check_simulation_result(self,drones:list[Drone])-> bool:
+        we_won = True
+        for drone in drones: 
+            if not drone.has_arrived():
+                we_won = False
+                break
+        return we_won
 
+                
