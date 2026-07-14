@@ -81,13 +81,13 @@ class Simulator:
         if len(report) > 0: 
             self.turn_count += 1
         return report 
-    
-    def check_simulation_result(self,drones:list[Drone])-> bool:
-        we_won = True
-        for drone in drones: 
+     
+    def check_simulation_result_and_return_stuck_drones(self)-> list[Drone]:
+        result: list[Drone] = []
+        for drone in self.drones:
             if not drone.has_arrived():
-                we_won = False
-                break
-        return we_won
+                result.append(drone)
+        return result
+
 
                 
