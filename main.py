@@ -2,53 +2,48 @@ from parser import Parser
 from graph import Graph
 from simulator import Simulator
 from drone import Drone
+
 if __name__ == "__main__":
+    # 1. Flip the map to the real one!
     parser = Parser("map.txt")
     parser.parse()
     
-    graph = Graph(parser.zones,parser.connections)
+    graph = Graph(parser.zones, parser.connections)
 
-# --- 1. SPAWN THE DRONES ---
     # --- 1. SPAWN THE DRONES ---
     my_drones: list[Drone] = []
     for i in range(parser.nb_drones):
         d_id = f"Drone_{i+1}"
         
-        # Build the fake Phase 4 path FIRST
-        # Grab the exact zone named 'waypoint1' from the dictionary
-        # The full route from start to finish!
         mock_path = [
-            parser.zones["waypoint1"], 
-            parser.zones["waypoint2"], 
+            parser.zones["bottleneck"], 
+            parser.zones["wide_area"], 
             parser.zones["goal"]
         ]
-        # Hand it to the drone exactly the way the constructor demands
+        
         new_drone = Drone(d_id, parser.start_zone, mock_path)
-        
-        
         my_drones.append(new_drone)
-    
-
-    print(parser.start_zone.current_drones)
+        
     # --- 2. START THE SIMULATOR ---
+    # (Notice this is outside the for-loop now!)
     simulator = Simulator(graph, my_drones)
 
-    # 4. Print the Official Referee Report!
     print("\n--- STARTING SIMULATION ---")
     
-    # THE GAME LOOP
-    # THE GAME LOOP
+    # --- 3. THE GAME LOOP ---
     while True:
         report = simulator.step()
         
         if len(report) == 0:
             print("\n--- END OF GAME ---")
             
-            # Use your function to check if we won!
-            if simulator.check_simulation_result(my_drones):
+            result = simulator.check_simulation_result_and_return_stuck_drones()
+            if not result:
                 print(f"✅ VICTORY! All drones arrived safely in {simulator.turn_count} turns.")
             else:
-                print(f"❌ DEADLOCK ERROR! Not all drones reached the goal.")
+                print(f"❌ DEADLOCK ERROR! Not all drones reached the goal.\n")
+                for stuck_drone in result:
+                    print(f"drone {stuck_drone.drone_id} at zone {stuck_drone.current_zone.name}")
             break
             
         print(f"\nTurn {simulator.turn_count} Results:")
