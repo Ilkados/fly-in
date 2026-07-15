@@ -21,5 +21,6 @@ class Drone:
             return self.path[0]
     def has_arrived(self) -> bool:
         return (len(self.path)==0)
+
     
   
