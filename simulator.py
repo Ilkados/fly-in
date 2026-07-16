@@ -19,8 +19,25 @@ class Simulator:
             next_zone = drone.get_next_zone()
             
             wishes.setdefault(next_zone,[]).append(drone)
-        
         return wishes
+
+    def normal_step(self,drone:Drone,target_zone:Zone):
+        # Apply the physical move
+        current_zone = drone.current_zone
+        current_zone.current_drones -= 1
+        target_zone.current_drones += 1
+        drone.current_zone = target_zone
+        drone.path.pop(0)
+
+
+    def restricted_step(self,drone:Drone, target_zone:Zone):
+        
+        if drone.transit_target == None:
+            drone.transit_target = target_zone
+        else:
+            self.normal_step(drone,target_zone)
+            drone.transit_target = None
+
 
     def resolve_and_move(self, wishes: dict[Zone, list[Drone]]) -> list[tuple[Drone, Zone, Zone]]:
         
@@ -33,36 +50,34 @@ class Simulator:
             
             for target_zone, candidate_drones in wishes.items():
                 
-                for drone in candidate_drones.copy():
+                    for drone in candidate_drones.copy():
 
-                    current_zone = drone.current_zone
-                    connection = self.graph.get_connection(current_zone, target_zone)
+                        current_zone = drone.current_zone
+                        connection = self.graph.get_connection(current_zone, target_zone)
 
-                    # 1. Check the Bridge
-                    current_traffic = link_usage.get(connection, 0)
-                    bridge_has_space = (current_traffic + 1) <= connection.max_link_capacity
+                        # 1. Check the Bridge
+                        current_traffic = link_usage.get(connection, 0)
+                        bridge_has_space = (current_traffic + 1) <= connection.max_link_capacity
 
-                    # 2. Check the live Zone (NO len() here!)
-                    current_parked = target_zone.current_drones
-                    zone_has_space = (current_parked < target_zone.max_drones)
+                        # 2. Check the live Zone (NO len() here!)
+                        current_parked = target_zone.current_drones
+                        zone_has_space = (current_parked < target_zone.max_drones)
 
-                    # 3. IF both are true, do the actions
-                    if bridge_has_space and zone_has_space: 
-                        
-                        # --- EVERYTHING BELOW IS INDENTED TOGETHER ---
-                        link_usage[connection] = current_traffic + 1 
+                        # 3. IF both are true, do the actions
+                        if bridge_has_space and zone_has_space: 
 
-                        # Apply the physical move
-                        current_zone.current_drones -= 1
-                        target_zone.current_drones += 1
-                        drone.current_zone = target_zone
-                        drone.path.pop(0)
+                            # --- EVERYTHING BELOW IS INDENTED TOGETHER ---
+                            link_usage[connection] = current_traffic + 1 
 
-                        # Log the receipt, remove from waiting list, ring the bell
-                        report.append((drone, current_zone, target_zone))
-                        candidate_drones.remove(drone)
-                        moved_someone = True
-                        # ---------------------------------------------
+                            if target_zone.zone_type == "normal":
+                                self.normal_step(drone,target_zone)
+                            elif target_zone.zone_type == "restricted":
+                                self.restricted_step(drone,target_zone)
+                           
+                            # Log the receipt, remove from waiting list, ring the bell
+                            report.append((drone, current_zone, target_zone))
+                            candidate_drones.remove(drone)
+                            moved_someone = True
             
             # This is OUTSIDE the for loops, but INSIDE the while loop
             if not moved_someone: 
@@ -70,7 +85,8 @@ class Simulator:
                 
         # This is OUTSIDE the while loop completely
         return report
-                    
+
+     # here our step  that return list of tuple of all drone want to make step from its current zone into target zone               
     def step(self) -> list[tuple[Drone, Zone, Zone]]:
         """Runs one simultaneous turn: collects intentions, resolves traffic, applies moves."""
         
