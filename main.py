@@ -47,5 +47,16 @@ if __name__ == "__main__":
             break
             
         print(f"\nTurn {simulator.turn_count} Results:")
-        for moved_drone, old_zone, new_zone in report:
-            print(f"  [SUCCESS] {moved_drone.drone_id} moved from {old_zone.name} to {new_zone.name}")
+        # Notice the new 'action_type' variable here!
+        for moved_drone, old_zone, new_zone, action_type in report:
+            
+            if action_type == "normal":
+                print(f"  [SUCCESS] {moved_drone.drone_id} moved from {old_zone.name} to {new_zone.name}")
+                
+            elif action_type == "takeoff":
+                # Print the connection instead of the zone
+                print(f"  [SUCCESS] {moved_drone.drone_id} moved to connection {old_zone.name}-{new_zone.name}")
+                
+            elif action_type == "landing":
+                # Print the arrival
+                print(f"  [SUCCESS] {moved_drone.drone_id} arrived at {new_zone.name}")

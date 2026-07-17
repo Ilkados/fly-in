@@ -30,18 +30,38 @@ class Simulator:
         drone.path.pop(0)
 
 
-    def restricted_step(self,drone:Drone, target_zone:Zone):
+    def restricted_step(self, drone: Drone, target_zone: Zone) -> None:
+        # 1. Free up the old parking spot
+        drone.current_zone.current_drones -= 1
         
-        if drone.transit_target == None:
-            drone.transit_target = target_zone
-        else:
-            self.normal_step(drone,target_zone)
-            drone.transit_target = None
+        # 2. Reserve the new parking spot
+        target_zone.current_drones += 1
+        
+        # 3. Put the drone in the air (do NOT pop the path yet!)
+        drone.transit_target = target_zone
+    
+    def land_transit_drones(self):
+        landing_reports = []  # 1. Create an empty list for this turn's landings
 
+        for drone in self.drones:
+            if drone.transit_target is not None:
+                # Remember where we came from before we move
+                old_zone = drone.current_zone
+                target_zone = drone.transit_target
+                
+                # Move the drone (your existing code)
+                drone.current_zone = target_zone
+                drone.path.pop(0)
+                drone.transit_target = None
+                
+                # 2. Add the secret tag for landing!
+                landing_reports.append((drone, old_zone, target_zone, "landing"))
+                
+        return landing_reports  # 3. Send the list back
 
     def resolve_and_move(self, wishes: dict[Zone, list[Drone]]) -> list[tuple[Drone, Zone, Zone]]:
         
-        report: list[tuple[Drone,Zone,Zone]] = []
+        report: list[tuple[Drone,Zone,Zone,str]] = []
         link_usage: dict[Connection,int] = {}
 
         while True:
@@ -71,11 +91,11 @@ class Simulator:
 
                             if target_zone.zone_type == "normal":
                                 self.normal_step(drone,target_zone)
+                                report.append((drone, current_zone, target_zone,"normal"))
                             elif target_zone.zone_type == "restricted":
                                 self.restricted_step(drone,target_zone)
-                           
+                                report.append((drone, current_zone, target_zone,"takeoff"))
                             # Log the receipt, remove from waiting list, ring the bell
-                            report.append((drone, current_zone, target_zone))
                             candidate_drones.remove(drone)
                             moved_someone = True
             
@@ -87,16 +107,23 @@ class Simulator:
         return report
 
      # here our step  that return list of tuple of all drone want to make step from its current zone into target zone               
-    def step(self) -> list[tuple[Drone, Zone, Zone]]:
-        """Runs one simultaneous turn: collects intentions, resolves traffic, applies moves."""
+    def step(self):
+        # 1. Ask the Air Traffic Controller for the landing list
+        landing_reports = self.land_transit_drones()
         
+        # 2. Collect wishes (normal game stuff)
         wishes = self.collect_wishes()
         
-        report = self.resolve_and_move(wishes)
+        # 3. Ask the Bouncer for the takeoff/normal list
+        move_reports = self.resolve_and_move(wishes)
         
-        if len(report) > 0: 
-            self.turn_count += 1
-        return report 
+        # 4. Staple the two lists together!
+        master_report = landing_reports + move_reports
+        
+        self.turn_count += 1
+        
+        # 5. Give the big stapled list to main.py
+        return master_report
      
     def check_simulation_result_and_return_stuck_drones(self)-> list[Drone]:
         result: list[Drone] = []
