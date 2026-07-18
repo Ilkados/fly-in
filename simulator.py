@@ -8,11 +8,13 @@ class Simulator:
         self.drones: list[Drone] = drones
         self.turn_count: int = 0
 
-    def collect_wishes(self)-> dict[Zone,list[Drone]]:
+    def collect_wishes(self,landed_drones)-> dict[Zone,list[Drone]]:
         wishes: dict[Zone,list[Drone]]={}
 
         for drone in self.drones:
-
+            
+            if drone in landed_drones:
+                continue
             if drone.has_arrived():
                 continue
 
@@ -108,21 +110,23 @@ class Simulator:
 
      # here our step  that return list of tuple of all drone want to make step from its current zone into target zone               
     def step(self):
-        # 1. Ask the Air Traffic Controller for the landing list
+        # 1. Get the landing list from the Air Traffic Controller
         landing_reports = self.land_transit_drones()
         
-        # 2. Collect wishes (normal game stuff)
-        wishes = self.collect_wishes()
+        # 2. Create the "Do Not Disturb" list! (Pull just the drone from the tuple)
+        landed_drones = [report[0] for report in landing_reports]
         
-        # 3. Ask the Bouncer for the takeoff/normal list
+        # 3. Hand the Do Not Disturb list to the Post Office
+        wishes = self.collect_wishes(landed_drones)
+        
+        # 4. Ask the Bouncer to resolve the normal moves and takeoffs
         move_reports = self.resolve_and_move(wishes)
         
-        # 4. Staple the two lists together!
+        # 5. Staple the lists together into the master basket
         master_report = landing_reports + move_reports
         
         self.turn_count += 1
         
-        # 5. Give the big stapled list to main.py
         return master_report
      
     def check_simulation_result_and_return_stuck_drones(self)-> list[Drone]:
