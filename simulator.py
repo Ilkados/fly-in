@@ -32,25 +32,31 @@ class Simulator:
         drone.path.pop(0)
 
 
-    def restricted_step(self, drone: Drone, target_zone: Zone) -> None:
+    def restricted_step(self, drone: Drone, target_zone: Zone, connection: Connection) -> None:
         # 1. Free up the old parking spot
         drone.current_zone.current_drones -= 1
         
         # 2. Reserve the new parking spot
         target_zone.current_drones += 1
         
+        connection.current_drones +=1
         # 3. Put the drone in the air (do NOT pop the path yet!)
         drone.transit_target = target_zone
     
-    def land_transit_drones(self):
+    def land_transit_drones(self) -> list[tuple[Drone, Zone, Zone, str]]:        
         landing_reports = []  # 1. Create an empty list for this turn's landings
 
         for drone in self.drones:
+            
             if drone.transit_target is not None:
                 # Remember where we came from before we move
                 old_zone = drone.current_zone
                 target_zone = drone.transit_target
-                
+                # ask the map  for the bridge between the two zones
+
+                connection = self.graph.get_connection(old_zone,target_zone)
+
+                connection.current_drones -=1
                 # Move the drone (your existing code)
                 drone.current_zone = target_zone
                 drone.path.pop(0)
@@ -79,7 +85,7 @@ class Simulator:
 
                         # 1. Check the Bridge
                         current_traffic = link_usage.get(connection, 0)
-                        bridge_has_space = (current_traffic + 1) <= connection.max_link_capacity
+                        bridge_has_space = (current_traffic + connection.current_drones + 1) <= connection.max_link_capacity
 
                         # 2. Check the live Zone (NO len() here!)
                         current_parked = target_zone.current_drones
@@ -95,7 +101,7 @@ class Simulator:
                                 self.normal_step(drone,target_zone)
                                 report.append((drone, current_zone, target_zone,"normal"))
                             elif target_zone.zone_type == "restricted":
-                                self.restricted_step(drone,target_zone)
+                                self.restricted_step(drone,target_zone,connection)
                                 report.append((drone, current_zone, target_zone,"takeoff"))
                             # Log the receipt, remove from waiting list, ring the bell
                             candidate_drones.remove(drone)
@@ -108,24 +114,22 @@ class Simulator:
         # This is OUTSIDE the while loop completely
         return report
 
-     # here our step  that return list of tuple of all drone want to make step from its current zone into target zone               
+     
     def step(self):
-        # 1. Get the landing list from the Air Traffic Controller
+
         landing_reports = self.land_transit_drones()
         
-        # 2. Create the "Do Not Disturb" list! (Pull just the drone from the tuple)
+
         landed_drones = [report[0] for report in landing_reports]
         
-        # 3. Hand the Do Not Disturb list to the Post Office
+
         wishes = self.collect_wishes(landed_drones)
         
-        # 4. Ask the Bouncer to resolve the normal moves and takeoffs
         move_reports = self.resolve_and_move(wishes)
         
-        # 5. Staple the lists together into the master basket
         master_report = landing_reports + move_reports
-        
-        self.turn_count += 1
+        if len(master_report) > 0:
+            self.turn_count += 1
         
         return master_report
      

@@ -10,12 +10,12 @@ class Drone:
         self.path: list[Zone] = path.copy()
 
         self.current_zone.current_drones +=1
-        self.transit_target = None
+        self.transit_target : None | Zone = None
 
-    def __repr__(self) -> str:
-        return f"Drone({self.id} @ {self.current_zone.name})"
+    #def __repr__(self) -> str:
+    #    return f"Drone({self.id} @ {self.current_zone.name})"
     
-    def get_next_zone(self) -> Zone:
+    def get_next_zone(self) -> Zone | None:
         if not self.path:
             return None
         else:
