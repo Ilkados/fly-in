@@ -2,10 +2,13 @@ from parser import Parser
 from graph import Graph
 from simulator import Simulator
 from drone import Drone
-
+import sys
 if __name__ == "__main__":
     # 1. Flip the map to the real one!
-    parser = Parser("map.txt")
+    if len (sys.argv) != 2:
+        print("usage: python main.py <map_file.txt")
+        sys.exit(1)
+    parser = Parser(sys.argv[1])
     parser.parse()
     
     graph = Graph(parser.zones, parser.connections)
@@ -16,9 +19,8 @@ if __name__ == "__main__":
         d_id = f"Drone_{i+1}"
         
         mock_path = [
-            parser.zones["bottleneck"], 
-            parser.zones["wide_area"], 
-            parser.zones["goal"]
+            parser.zones["r1"],
+            parser.zones["goal"],
         ]
         
         new_drone = Drone(d_id, parser.start_zone, mock_path)
@@ -37,7 +39,7 @@ if __name__ == "__main__":
         if len(report) == 0:
             print("\n--- END OF GAME ---")
             
-            result = simulator.check_simulation_result_and_return_stuck_drones()
+            result = simulator.get_stuck_drones()
             if not result:
                 print(f"✅ VICTORY! All drones arrived safely in {simulator.turn_count} turns.")
             else:

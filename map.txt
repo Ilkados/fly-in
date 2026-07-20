@@ -1,11 +1,9 @@
-# Easy Level 3: Basic capacity management
-nb_drones: 2
+# stress_test.txt
+nb_drones: 3
 
 start_hub: start 0 0 [color=green]
-hub: bottleneck 1 0 [zone=restricted color=orange max_drones=2]
-hub: wide_area 2 0 [color=blue max_drones=3]
-end_hub: goal 3 0 [color=red]
+hub: r1 1 0 [zone=restricted color=orange max_drones=2]
+end_hub: goal 2 0 [color=red]
 
-connection: start-bottleneck [max_link_capacity=1]
-connection: bottleneck-wide_area [max_link_capacity=1]
-connection: wide_area-goal [max_link_capacity=4]
+connection: start-r1 [max_link_capacity=1]
+connection: r1-goal [max_link_capacity=4]

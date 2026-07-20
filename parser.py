@@ -51,7 +51,7 @@ class Parser:
         for pair in pairs:
             try:
                 key,value = pair.split("=",1)
-            except:
+            except ValueError:
                 raise ValueError(f"Parsing error on line {line_num}: Invalid metadata syntax '{pair}'")
             metadata_dic[key] = value
         

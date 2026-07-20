@@ -50,5 +50,5 @@ class Graph:
     def get_connection(self, zone1: Zone, zone2: Zone) -> Connection:
         # ROLE: Hand this to your Simulator. The Simulator passes in two zones, 
         # and this function instantly returns the exact Connection object in O(1) time.
-        # We use .get() so if the road doesn't exist, it safely returns None without crashing.
+        # Direct access — if the road doesn't exist, this is a bug and should crash loudly (fail-fast)
         return self.connection_map[(zone1, zone2)]

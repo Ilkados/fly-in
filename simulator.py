@@ -133,7 +133,7 @@ class Simulator:
         
         return master_report
      
-    def check_simulation_result_and_return_stuck_drones(self)-> list[Drone]:
+    def get_stuck_drones(self)-> list[Drone]:
         result: list[Drone] = []
         for drone in self.drones:
             if not drone.has_arrived():
