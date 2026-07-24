@@ -1,6 +1,8 @@
 import heapq
+import itertools
 from graph import Graph
 from zone import Zone
+
 
 def zone_cost(zone: Zone) -> int:
     result = 100
@@ -10,16 +12,18 @@ def zone_cost(zone: Zone) -> int:
         result = 200
     return result
 
+
 def dijkstra(graph: Graph, start: Zone, end: Zone) -> list[Zone]:
     # 1. SETUP
-    pq = [(0, start)]
-    distance = {start: 0}
-    parent = {start: None}
+    counter = itertools.count()
+    pq: list[tuple[int, int, Zone]] = [(0, next(counter), start)]
+    distance: dict[Zone, int] = {start: 0}
+    parent: dict[Zone, Zone | None] = {start: None}
 
     # 2. THE ENGINE
     while pq:
-        current_cost, current = heapq.heappop(pq)
-        
+        current_cost, _, current = heapq.heappop(pq)
+
         # The Trash Can: skip stale tickets with old, bad costs
         if current_cost > distance.get(current, float('inf')):
             continue
@@ -32,6 +36,10 @@ def dijkstra(graph: Graph, start: Zone, end: Zone) -> list[Zone]:
 
         # Check all neighbors
         for neighbor in neighbors_zones:
+            # BUG 2 FIX: Ignore blocked zones entirely!
+            if neighbor.zone_type == "blocked":
+                continue
+                
             old_cost = distance.get(neighbor, float('inf'))
             new_cost = current_cost + zone_cost(neighbor)
 
@@ -39,7 +47,7 @@ def dijkstra(graph: Graph, start: Zone, end: Zone) -> list[Zone]:
             if new_cost < old_cost:
                 distance[neighbor] = new_cost
                 parent[neighbor] = current
-                heapq.heappush(pq, (new_cost, neighbor))
+                heapq.heappush(pq, (new_cost, next(counter), neighbor))
 
     # 3. PATH RECONSTRUCTION
     # Protect against KeyError if the end zone is unreachable
@@ -47,13 +55,13 @@ def dijkstra(graph: Graph, start: Zone, end: Zone) -> list[Zone]:
         return []
 
     # Walk backward from the end to the start
-    path = []
-    step = end
+    path: list[Zone] = []
+    step: Zone | None = end
     while step is not None:
         path.append(step)
         step = parent[step]
-    
+
     # Flip it so it goes Start -> End
     path.reverse()
-    
+
     return path
