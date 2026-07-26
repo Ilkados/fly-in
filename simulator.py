@@ -110,7 +110,7 @@ class Simulator:
 
                         link_usage[connection] = current_traffic + 1
 
-                        if target_zone.zone_type == "normal":
+                        if target_zone.zone_type == "normal" or target_zone.zone_type == "priority":
                             self.normal_step(drone, target_zone)
                             report.append(
                                 (drone, current_zone, target_zone, "normal")
