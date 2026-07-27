@@ -5,7 +5,43 @@ from graph import Graph
 from parser import Parser
 from simulator import Simulator
 from yens_algorithm import yens_all_paths  # <-- IMPORT YOUR NEW ENGINE!
+from zone import Zone
+def paths_conflict(path1 : list[Zone] , path2:list[Zone]):
+    # 1. Slice off the start and goal zones
+    middle_zones1 = path1[1:-1]
+    middle_zones2 = path2[1:-1]
 
+    # 2. Find the shared zones using Python sets
+    # How do we write this line?
+    shared_zones = set(middle_zones1) & set(middle_zones2)
+    
+    # 3. Check the capacity of those shared zones
+    # ...
+    for zone in shared_zones:
+
+        if zone.max_drones == 1 :
+            return True
+    
+    return False
+def build_highway_group(all_paths):
+    # Start with the best, shortest path.
+    safe_group = [all_paths[0]]
+
+    # Loop through the rest of the paths Yen found
+    for new_path in all_paths[1:]:
+        is_safe = True 
+        
+        # Check against every path we've already accepted
+        for existing_path in safe_group:
+            if paths_conflict(new_path, existing_path):
+                is_safe = False
+                break
+        
+        # If it survived the check without conflicts, add it!
+        if is_safe:
+            safe_group.append(new_path)
+
+    return safe_group
 if __name__ == "__main__":
     # 1. Flip the map to the real one!
     if len(sys.argv) != 2:
@@ -32,13 +68,21 @@ if __name__ == "__main__":
     print(f"Found {len(all_paths)} different safe routes to the goal!")
 
     # --- 2. SPAWN THE DRONES & MANAGE TRAFFIC ---
-    my_drones: list[Drone] = []
+    # ... previous code ...
+    print(f"Found {len(all_paths)} different safe routes to the goal!")
+
+    # --- NEW CODE: Filter for the safe highway group ---
+    safe_paths = build_highway_group(all_paths)
+    print(f"Filtered down to {len(safe_paths)} non-overlapping highway paths!")
+
+    # --- 2. SPAWN THE DRONES & MANAGE TRAFFIC ---
+    my_drones = []
     for i in range(parser.nb_drones):
         d_id = f"Drone_{i + 1}"
 
-        # THE DEALER: Round-Robin Distribution
-        # The modulo operator (%) perfectly deals out paths 1, 2, 3, 1, 2, 3...
-        assigned_path = all_paths[i % len(all_paths)]
+        # THE DEALER: Now we use safe_paths instead of all_paths!
+        assigned_path = safe_paths[i % len(safe_paths)]
+        # ... rest of your code ...
 
         # SLICE OFF THE START NODE!
         # Your Yen's algorithm returns the full path: [Start, ZoneA, Goal]
