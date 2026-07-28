@@ -31,12 +31,10 @@ COLOR_MAP = {
     "blue": "\033[94m",
     "cyan": "\033[96m",
     "orange": "\033[38;5;208m",
-    "lime":"\033[38;5;10m",
-    "magenta":"\033[35m",
+    "lime": "\033[38;5;10m",
+    "magenta": "\033[35m",
     "gold": "\033[38;5;220m",
     "none": "\033[0m"
-    
-    
 }
 
 
@@ -115,6 +113,7 @@ if __name__ == "__main__":
     print("Calculating all possible routes...")
 
     start_z = parser.start_zone
+    assert start_z is not None
     goal_z = parser.zones["goal"]
 
     yens_results = yens_all_paths(graph, start_z, goal_z)

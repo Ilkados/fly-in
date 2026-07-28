@@ -88,7 +88,11 @@ def dijkstra(
     return distance[end], path
 
 
-def yens_all_paths(graph, start, end) -> list[tuple[float, list[Zone]]]:
+def yens_all_paths(
+    graph: Graph,
+    start: Zone,
+    end: Zone
+) -> list[tuple[float, list[Zone]]]:
     The_Winner = []
     The_Waiting_Room = []
 
