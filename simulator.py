@@ -12,7 +12,7 @@ class Simulator:
 
     def collect_wishes(
         self, landed_drones: list[Drone]
-    ) -> dict[Zone, list[Drone]]:
+    ) -> dict[Zone, list[Drone]] :
         wishes: dict[Zone, list[Drone]] = {}
 
         for drone in self.drones:
@@ -23,8 +23,8 @@ class Simulator:
                 continue
 
             next_zone = drone.get_next_zone()
-
-            wishes.setdefault(next_zone, []).append(drone)
+            if next_zone is not None:
+                wishes.setdefault(next_zone, []).append(drone)
         return wishes
 
     def normal_step(self, drone: Drone, target_zone: Zone) -> None:
@@ -110,7 +110,10 @@ class Simulator:
 
                         link_usage[connection] = current_traffic + 1
 
-                        if target_zone.zone_type == "normal" or target_zone.zone_type == "priority":
+                        if (
+                            target_zone.zone_type == "normal"
+                            or target_zone.zone_type == "priority"
+                        ):
                             self.normal_step(drone, target_zone)
                             report.append(
                                 (drone, current_zone, target_zone, "normal")
