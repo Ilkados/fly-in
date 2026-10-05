@@ -95,11 +95,18 @@ def build_highway_group(all_paths: list[list[Zone]]) -> list[list[Zone]]:
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("usage: python main.py <map_file.txt>")
+        print(f"{YELLOW}Error: Missing map file.{RESET}")
+        print(f"{CYAN}Usage: make run MAP=<path_to_map.txt>{RESET}")
         sys.exit(1)
 
     parser = Parser(sys.argv[1])
-    parser.parse()
+    # Wrap it in a try-except block so it doesn't crash the terminal!
+    try:
+        parser.parse()
+    except ValueError as e:
+        # This catches your custom error and prints it nicely
+        print(f"{YELLOW}{e}{RESET}")
+        sys.exit(1)
 
     graph = Graph(parser.zones, parser.connections)
 
@@ -114,7 +121,8 @@ if __name__ == "__main__":
 
     start_z = parser.start_zone
     assert start_z is not None
-    goal_z = parser.zones["goal"]
+    goal_z = parser.end_zone
+    assert goal_z is not None
 
     yens_results = yens_all_paths(graph, start_z, goal_z)
 

@@ -2,13 +2,13 @@
 PYTHON = python3
 PIP = pip3
 # Set a default map file so 'make run' works automatically
-MAP ?= map.txt
+MAP = maps/easy/01_linear_path.txt
 
 .PHONY: install run debug clean lint lint-strict
 
 # Install project dependencies (including the linters)
 install:
-	$(PIP) install flake8 mypy
+	$(PIP) install flake8 mypy pygame
 	# If you add external libraries later, uncomment the line below:
 	# $(PIP) install -r requirements.txt
 

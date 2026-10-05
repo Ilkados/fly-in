@@ -75,7 +75,7 @@ class Parser:
             raise ValueError(
                 f"Parsing error on line {line_num}: "
                 f"Number of drones must be an integer."
-            )
+            )from None
 
     def _parse_hub(self, line: str, line_num: int) -> None:
         """Read a hub line and create the matching Zone object."""
