@@ -2,20 +2,19 @@
 
 # Fly-In 🚁
 
-## Description
+## Run the first map
 
-**Fly-In** is a complex pathfinding and traffic simulation engine. The primary goal of the project is to safely and efficiently route a fleet of drones from a starting hub to an ending hub across a customized network of nodes, avoiding mid-air collisions and respecting link capacities.
+From the repository root, run `make run` with Python 3 and Make installed. On the bundled linear map, two drones travel from `start` through two waypoints to `goal`. The final line reads:
 
-The project features a highly resilient parsing engine that reads custom map files, a graph-theory-based pathfinding system to calculate non-intersecting routes, and a turn-by-turn "Air Traffic Controller" simulation that orchestrates the movement of the drones until they all successfully reach their destination.
+```text
+✅ VICTORY! All drones arrived safely in 4 turns.
+```
 
-## Algorithm & Implementation Strategy
+## How routing works
 
-To ensure optimal routing without collisions, the project relies on several key algorithmic choices:
+The parser builds a graph from the map file. The route search uses Dijkstra’s algorithm and Yen’s algorithm to find candidate paths, then filters paths that share intermediate nodes. The simulator advances one turn at a time and tracks capacity at zones and connections.
 
-* **Dijkstra's & Yen's Algorithms:** The engine uses Dijkstra’s algorithm to calculate the absolute shortest path. It then utilizes Yen’s k-shortest paths algorithm to generate a comprehensive list of alternative detours through the graph.
-* **Greedy "Safe Highway" Filtering:** Because Yen's algorithm generates overlapping paths, a custom greedy algorithm filters the results. It automatically approves the shortest path, then iteratively checks remaining paths against the approved group, discarding any that share nodes (conflict). This results in a final set of completely independent "highways."
-* **Queue-Based Simulation:** The `Simulator` acts as an Air Traffic Controller. It assigns drones to the safe highways, slicing the start node from the paths so drones process a pure queue of upcoming destinations. The simulation runs a `step()` function iteratively, moving drones turn-by-turn while strictly enforcing graph constraints.
-* **Defensive Parsing:** The program implements strict input validation and `try...except` chaining to handle untrusted user data (map files). It catches formatting errors, topological impossibilities (phantom connections), and missing metadata efficiently.
+Start with the [linear map](maps/easy/01_linear_path.txt), follow the [route search](yens_algorithm.py), then read the [simulator](simulator.py).
 
 ## Visual Representation
 
